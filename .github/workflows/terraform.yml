@@ -13,10 +13,8 @@ permissions:
   pull-requests: write
 
 env:
-  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+  AZURE_CREDENTIALS_USER: ${{ secrets.AZURE_USERNAME }}
+  AZURE_CREDENTIALS_PASS: ${{ secrets.AZURE_PASSWORD }}
 
 jobs:
   terraform-plan:
@@ -25,6 +23,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Azure Login
+        run: |
+          az login -u "$AZURE_CREDENTIALS_USER" -p "$AZURE_CREDENTIALS_PASS"
+          
+          # Extract subscription ID and tenant ID to set environment variables for Terraform
+          SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+          TENANT_ID=$(az account show --query tenantId -o tsv)
+          
+          echo "ARM_SUBSCRIPTION_ID=$SUBSCRIPTION_ID" >> $GITHUB_ENV
+          echo "ARM_TENANT_ID=$TENANT_ID" >> $GITHUB_ENV
+          # For user-based login, Terraform uses the CLI token, so we don't need CLIENT_ID/SECRET
 
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v4
@@ -104,6 +114,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Azure Login
+        run: |
+          az login -u "$AZURE_CREDENTIALS_USER" -p "$AZURE_CREDENTIALS_PASS"
+          SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+          TENANT_ID=$(az account show --query tenantId -o tsv)
+          echo "ARM_SUBSCRIPTION_ID=$SUBSCRIPTION_ID" >> $GITHUB_ENV
+          echo "ARM_TENANT_ID=$TENANT_ID" >> $GITHUB_ENV
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
