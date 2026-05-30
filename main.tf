@@ -13,6 +13,14 @@ module "aks" {
   dns_prefix          = var.dns_prefix
 }
 
+module "storage" {
+  source               = "./modules/storage"
+  resource_group_name  = var.resource_group_name
+  location             = var.location
+  storage_account_name = var.storage_account_name
+  containers           = var.storage_containers
+}
+
 resource "azurerm_role_assignment" "aks_acr_pull" {
   principal_id                     = module.aks.kubelet_identity_object_id
   role_definition_name             = "AcrPull"

@@ -27,3 +27,15 @@ variable "dns_prefix" {
   type        = string
   default     = "myakscluster"
 }
+
+variable "storage_account_name" {
+  description = "Name of the storage account"
+  type        = string
+  default     = "mystorageacc12345" # Needs to be globally unique
+}
+
+variable "storage_containers" {
+  description = "List of containers to create in the storage account"
+  type        = set(string)
+  default     = ["data", "logs", "backups"]
+}
